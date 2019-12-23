@@ -1,26 +1,18 @@
-"use strict";
-
-const getRegexTokens = require("./lexer").getRegexTokens;
-const tokensToAST = require("./parser").tokensToAST;
-const { astToNFA, NFA } = require("./NFA");
+import { getRegexTokens } from "./lexer";
+import { tokensToAST } from "./parser";
+import { astToNFA, NFA } from "./NFA";
 
 class Regex {
-	/**
-     * 
-     * @param {string} pattern 
-     */
-    constructor(pattern) {
+    pattern: string;
+    nfa: NFA | null = null;
+
+    constructor(pattern: string) {
         this.pattern = pattern;
-		/**
-         * @type {NFA}
-         */
-        this.nfa = null;
-        this.compile();
     }
 
-    compile() {
+    public compile(): boolean {
         if (this.pattern == null ||
-            typeof (this.pattern) != "string" ||
+            typeof (this.pattern) !== "string" ||
             this.pattern.length == 0) {
             return false;
         }
@@ -39,19 +31,19 @@ class Regex {
         if (nfa == null) {
             return false;
         }
-
         this.nfa = nfa;
+
+        return true;
     }
 
-	/**
-     * 
-     * @param {string} target
-     * @returns {boolean} 
-     */
-    search(target) {
+    public search(target: string): boolean {
         if (this.nfa == null) {
             return false;
         }
         return this.nfa.search(target);
     }
+}
+
+export {
+    Regex
 }
