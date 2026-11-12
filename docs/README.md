@@ -7,6 +7,7 @@
 3. [子集构造与 DFA 最小化](03-dfa.md)
 4. [NFA 集合模拟与最左最长匹配](04-matching.md)
 5. [测试策略与原生 RegExp 对拍](05-testing.md)
+6. [图结构可视化](06-visualization.md)
 
 配套阅读：
 

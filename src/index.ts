@@ -31,4 +31,7 @@ export type { CharClass, DfaState } from './dfa.ts';
 export { find, findAll, replace, testFull } from './matcher.ts';
 export type { Match, MatchOptions, Replacement } from './matcher.ts';
 
+export { astToMermaid, dfaToMermaid, nfaToMermaid, toHtml, toMarkdown } from './visualize.ts';
+export type { VisualFormat, VisualizeOptions } from './visualize.ts';
+
 export { RegexCompileError, RegexSyntaxError } from './errors.ts';

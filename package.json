@@ -21,6 +21,7 @@
     "typecheck": "tsc --noEmit",
     "build": "tsc -p tsconfig.build.json",
     "cli": "node src/cli.ts",
+    "viz": "node src/cli.ts visualize",
     "demo": "node examples/demo.ts"
   },
   "devDependencies": {

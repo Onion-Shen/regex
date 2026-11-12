@@ -18,6 +18,7 @@ npm run typecheck  # tsc --noEmit（包含 test/examples）
 npm run build      # tsc -p tsconfig.build.json → dist/
 npm run demo       # examples/demo.ts
 npm run cli -- <command> ...  # src/cli.ts
+npm run viz -- <pattern>      # 输出 Markdown/Mermaid；加 --html 生成 HTML
 ```
 
 提交前至少运行 `npm run typecheck && npm test`。改动 DFA/最小化/匹配语义时，`npm run demo` 也应人工检查输出。
@@ -42,6 +43,7 @@ npm run cli -- <command> ...  # src/cli.ts
 - **DFA** 的字母表按字符集边界划分等价类；转移表中的 `-1` 表示死状态。含锚点的 NFA 不允许 `determinize`。
 - **matcher** 默认使用 NFA 集合模拟，锚点只能在这里求值；不要在 NFA 上做位置相关的静态化简。
 - **Regex** 缓存 DFA（`toDFA(false/true)`），匹配默认走 NFA。
+- **visualize** 只读取公开结构（AST/NFA/DFA），不要在可视化层反向影响匹配语义。
 
 ## 语义约定（改动前必读）
 
@@ -59,8 +61,9 @@ npm run cli -- <command> ...  # src/cli.ts
 3. `nfa.ts`：实现 Thompson 片段；保持 `maxRepeat` / `maxStates` 上限。
 4. `dfa.ts`：确认字母表构建与子集构造仍正确（若引入位置相关语义，DFA 路径要显式拒绝）。
 5. `matcher.ts`：若影响匹配语义，同时检查 `find`、`testFull`、`iterateMatches` 三处。
-6. `test/`：至少覆盖正常路径、边界（空串/空匹配/Unicode）、错误路径；必要时加对拍或穷举等价性测试。
-7. `docs/` 与 `README.md`：更新语法表、限制和示例。
+6. `visualize.ts`：若新增 AST/NFA/DFA 结构，更新 Mermaid 生成与可视化测试。
+7. `test/`：至少覆盖正常路径、边界（空串/空匹配/Unicode）、错误路径；必要时加对拍或穷举等价性测试。
+8. `docs/` 与 `README.md`：更新语法表、限制和示例。
 
 ## 测试要求
 

@@ -1,5 +1,8 @@
 import assert from 'node:assert/strict';
 import { execFileSync, spawnSync } from 'node:child_process';
+import { mkdtempSync, readFileSync, rmSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
 import { test } from 'node:test';
 import { fileURLToPath } from 'node:url';
 
@@ -34,6 +37,22 @@ test('CLI debug 输出 AST / NFA / DFA', () => {
   assert.match(output, /NFA:/);
   assert.match(output, /DFA（子集构造）/);
   assert.match(output, /DFA（最小化）: 4 个状态/);
+});
+
+test('CLI visualize 输出 Markdown 与 HTML', () => {
+  const markdown = run('visualize', '(a|b)*abb');
+  assert.match(markdown, /```mermaid/);
+  assert.match(markdown, /DFA（最小化，4 状态）/);
+
+  const directory = mkdtempSync(join(tmpdir(), 'regex-visualize-'));
+  try {
+    const file = join(directory, 'visualization.html');
+    const output = run('visualize', 'ab|c', '--html', '--output', file);
+    assert.match(output, /已生成/);
+    assert.match(readFileSync(file, 'utf8'), /^<!doctype html>/);
+  } finally {
+    rmSync(directory, { recursive: true, force: true });
+  }
 });
 
 test('CLI 错误退出码与帮助信息', () => {

@@ -1,14 +1,18 @@
 #!/usr/bin/env node
+import { writeFileSync } from 'node:fs';
 import { formatAst } from './ast.ts';
 import { RegexCompileError, RegexSyntaxError } from './errors.ts';
 import { Regex, type RegexOptions } from './regex.ts';
 import type { Edge } from './nfa.ts';
+import { toHtml, toMarkdown, type VisualFormat } from './visualize.ts';
 
 interface CliOptions {
   readonly flags: RegexOptions;
   readonly dotNfa: boolean;
   readonly dotDfa: boolean;
   readonly minimize: boolean;
+  readonly format: VisualFormat;
+  readonly output: string | null;
   readonly positional: readonly string[];
 }
 
@@ -19,12 +23,20 @@ const USAGE = `用法:
   node src/cli.ts find <pattern> <input> [flags]
   node src/cli.ts replace <pattern> <input> <replacement> [flags]
   node src/cli.ts debug <pattern> [flags] [--dot-nfa] [--dot-dfa] [--min]
+  node src/cli.ts visualize <pattern> [flags] [--min] [--format=markdown|html] [--output <file>]
 
 flags: -i 忽略大小写  -m 多行锚点  -s 点号匹配换行  （可组合为 -ims）
+
+visualize:
+  默认输出 Markdown（Mermaid 图 + 转移表），可直接在 VS Code 预览；
+  --html 生成独立页面（默认写入 regex-visualization.html），用浏览器打开；
+  --output <file> 指定输出文件，--output - 强制打印到终端。
 
 示例:
   node src/cli.ts test '(a|b)*abb' 'xxababb'
   node src/cli.ts debug '(a|b)*abb' --dot-dfa --min
+  node src/cli.ts visualize '(a|b)*abb' --html
+  node src/cli.ts visualize '^a\\d+$' --min
   node src/cli.ts replace 'a+' 'baaac' 'X'`;
 
 function parseArgs(argv: readonly string[]): CliOptions {
@@ -37,6 +49,8 @@ function parseArgs(argv: readonly string[]): CliOptions {
   let dotNfa = false;
   let dotDfa = false;
   let minimize = false;
+  let format: VisualFormat = 'markdown';
+  let output: string | null = null;
   let index = 0;
 
   while (index < argv.length) {
@@ -60,6 +74,31 @@ function parseArgs(argv: readonly string[]): CliOptions {
       minimize = true;
       continue;
     }
+    if (arg === '--md' || arg === '--markdown') {
+      format = 'markdown';
+      continue;
+    }
+    if (arg === '--html') {
+      format = 'html';
+      continue;
+    }
+    if (arg.startsWith('--format=')) {
+      format = parseFormat(arg.slice('--format='.length));
+      continue;
+    }
+    if (arg === '--output' || arg === '-o') {
+      const value = argv[index];
+      if (value === undefined) {
+        throw new Error(`参数 ${arg} 需要一个文件路径`);
+      }
+      output = value;
+      index += 1;
+      continue;
+    }
+    if (arg.startsWith('--output=')) {
+      output = arg.slice('--output='.length);
+      continue;
+    }
     if (arg.startsWith('--flags=')) {
       applyFlagString(arg.slice('--flags='.length), flags);
       continue;
@@ -72,7 +111,17 @@ function parseArgs(argv: readonly string[]): CliOptions {
     positional.push(arg);
   }
 
-  return { flags, dotNfa, dotDfa, minimize, positional };
+  return { flags, dotNfa, dotDfa, minimize, format, output, positional };
+}
+
+function parseFormat(value: string): VisualFormat {
+  if (value === 'md' || value === 'markdown') {
+    return 'markdown';
+  }
+  if (value === 'html') {
+    return 'html';
+  }
+  throw new Error(`未知输出格式 '${value}'（可用 markdown / html）`);
 }
 
 function applyFlagString(text: string, flags: { ignoreCase?: boolean; multiline?: boolean; dotAll?: boolean }): void {
@@ -140,6 +189,22 @@ function main(argv: readonly string[]): number {
       const input = requireArg(rest, 1, 'input');
       const replacement = requireArg(rest, 2, 'replacement');
       console.log(regex.replace(input, replacement));
+      return 0;
+    }
+    case 'visualize': {
+      const content =
+        options.format === 'html'
+          ? toHtml(regex, { minimizeOnly: options.minimize })
+          : toMarkdown(regex, { minimizeOnly: options.minimize });
+      const target =
+        options.output ?? (options.format === 'html' ? 'regex-visualization.html' : null);
+
+      if (target === null || target === '-') {
+        console.log(content);
+      } else {
+        writeFileSync(target, content, 'utf8');
+        console.log(`已生成 ${target}（${options.format}）`);
+      }
       return 0;
     }
     case 'debug': {

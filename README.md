@@ -18,6 +18,7 @@
 - **NFA 集合模拟**：正确处理 ε 环、空串、零宽断言，天然支持子串搜索。
 - **最左最长语义**：POSIX 风格，`a|ab` 匹配 `"ab"` 返回 `"ab"`。
 - **DFA 构造与最小化**：子集构造 + Moore 分区细化，支持导出表格与 Graphviz DOT。
+- **图结构可视化**：AST / NFA / DFA 可导出 Markdown（Mermaid）或独立 HTML，直接在 VS Code 预览或浏览器查看。
 - **Unicode 码点**：按码点迭代，字符类用区间集合表示；`index/end` 仍是 UTF-16 下标。
 - **现代工具链**：Node.js ≥ 22.18 直接运行 `.ts`，`node:test`、严格 TS、ESM、erasable syntax。
 
@@ -27,10 +28,12 @@
 
 ```bash
 npm install        # 只有 typescript / @types/node 两个开发依赖
-npm test           # 52 个单元 / 对拍 / 模糊 / CLI 测试
+npm test           # 58 个单元 / 对拍 / 模糊 / CLI / 可视化测试
 npm run demo       # 编译管线与匹配演示
 npm run typecheck  # tsc --noEmit
 npm run build      # 输出到 dist/
+npm run viz -- '(a|b)*abb'          # Markdown（Mermaid）输出到终端
+npm run viz -- '(a|b)*abb' --html   # 生成 regex-visualization.html
 ```
 
 ### 作为库使用
@@ -65,9 +68,15 @@ npm run cli -- find '\d+' 'a12b345'
 npm run cli -- replace 'a+' 'baaac' 'X'
 npm run cli -- debug '(a|b)*abb' --min
 npm run cli -- debug '(a|b)*abb' --dot-dfa --min
+npm run cli -- visualize '(a|b)*abb'              # Markdown 到终端
+npm run cli -- visualize '(a|b)*abb' --output out.md
+npm run cli -- visualize '(a|b)*abb' --html       # 默认写 regex-visualization.html
+npm run cli -- visualize '^a\d+$' --min           # 只展示最小化 DFA
 ```
 
 `debug` 会依次打印 AST、NFA（状态与边）、原始 DFA 和最小化 DFA；加 `--dot-nfa` / `--dot-dfa` 可输出 Graphviz DOT。
+
+`visualize` 输出 Markdown（Mermaid 图 + DFA 转移表）或独立 HTML。Markdown 可直接在 VS Code 的 Markdown 预览、GitHub 或支持 Mermaid 的编辑器中渲染；HTML 用浏览器打开即可，图表通过 CDN 加载 Mermaid。`--output -` 可强制打印到终端。
 
 标志位：`-i` 忽略大小写，`-m` 多行锚点，`-s` 点号匹配换行，可组合为 `-ims`。
 
@@ -113,6 +122,7 @@ npm run cli -- debug '(a|b)*abb' --dot-dfa --min
 | 匹配 | `src/matcher.ts` | 带起始位置的集合模拟；零宽断言；最左最长 |
 | API | `src/regex.ts` | 编译、匹配、查找替换、DFA 缓存 |
 | CLI | `src/cli.ts` | 调试与可视化入口 |
+| 可视化 | `src/visualize.ts` | AST/NFA/DFA → Mermaid Markdown / 独立 HTML |
 
 一个有意思的细节：`(a|b)*abb` 的**原始子集构造**会得到 5 个状态，因为 Thompson 构造中的 ε 分支让「起点」与「读入一个 b 后」的 NFA 状态集合不同；做分区细化最小化后才合并为教科书里的经典 4 状态 DFA。测试同时断言了这两个数字。
 
@@ -120,9 +130,9 @@ npm run cli -- debug '(a|b)*abb' --dot-dfa --min
 
 ```
 src/        引擎实现（charset → lexer → parser → nfa → dfa → matcher → regex）
-test/       单元测试、NFA/DFA 等价性、原生 RegExp 对拍、CLI 测试
+test/       单元测试、NFA/DFA 等价性、原生 RegExp 对拍、CLI/可视化测试
 examples/   可运行的管线演示
-docs/       理论说明（词法/语法、Thompson、子集构造、最小化、匹配、测试）
+docs/       理论说明（词法/语法、Thompson、子集构造、最小化、匹配、测试、可视化）
 ```
 
 ## 测试
@@ -147,6 +157,7 @@ npm test
 - [docs/03-dfa.md](docs/03-dfa.md)：子集构造与 DFA 最小化
 - [docs/04-matching.md](docs/04-matching.md)：集合模拟与最左最长
 - [docs/05-testing.md](docs/05-testing.md)：测试策略与对拍方法
+- [docs/06-visualization.md](docs/06-visualization.md)：Markdown / HTML 图结构可视化
 
 ## 限制与路线图
 
