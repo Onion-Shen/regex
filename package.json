@@ -1,0 +1,30 @@
+{
+  "name": "regex-from-scratch",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "从零实现的正则表达式引擎：词法/语法分析 → Thompson NFA → 子集构造 DFA → 匹配",
+  "keywords": [
+    "regex",
+    "regular-expression",
+    "nfa",
+    "dfa",
+    "thompson-construction",
+    "automata"
+  ],
+  "engines": {
+    "node": ">=22.18.0"
+  },
+  "scripts": {
+    "test": "node --test test/*.test.ts",
+    "test:watch": "node --test --watch test/*.test.ts",
+    "typecheck": "tsc --noEmit",
+    "build": "tsc -p tsconfig.build.json",
+    "cli": "node src/cli.ts",
+    "demo": "node examples/demo.ts"
+  },
+  "devDependencies": {
+    "@types/node": "^24.0.0",
+    "typescript": "^5.9.0"
+  }
+}

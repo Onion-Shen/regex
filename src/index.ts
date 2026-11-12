@@ -1,49 +1,34 @@
-import { getRegexTokens } from "./lexer";
-import { tokensToAST } from "./parser";
-import { astToNFA, NFA } from "./NFA";
+export { Regex, compile } from './regex.ts';
+export type { RegexOptions } from './regex.ts';
 
-class Regex {
-    pattern: string;
-    nfa: NFA | null = null;
+export { parsePattern } from './parser.ts';
+export type { ParseOptions, ParseResult } from './parser.ts';
 
-    constructor(pattern: string) {
-        this.pattern = pattern;
-    }
+export { tokenize, isQuantifierToken } from './lexer.ts';
+export type { LexOptions, Token } from './lexer.ts';
 
-    public compile(): boolean {
-        if (this.pattern == null ||
-            typeof (this.pattern) !== "string" ||
-            this.pattern.length == 0) {
-            return false;
-        }
+export { CharSet, MAX_CODE_POINT, escapeCodePoint, isLineTerminator } from './charset.ts';
+export type { CharRange } from './charset.ts';
 
-        let tokens = getRegexTokens(this.pattern);
-        if (tokens == null || tokens.length == 0) {
-            return false;
-        }
+export { EMPTY, formatAst } from './ast.ts';
+export type {
+  AlternationNode,
+  Assertion,
+  AssertionNode,
+  Ast,
+  CharSetNode,
+  ConcatNode,
+  EmptyNode,
+  RepeatNode,
+} from './ast.ts';
 
-        let ast = tokensToAST(tokens, 0, tokens.length);
-        if (ast == null) {
-            return false;
-        }
+export { Nfa, NfaState, astToNfa } from './nfa.ts';
+export type { Edge, NfaBuildOptions } from './nfa.ts';
 
-        let nfa = astToNFA(ast);
-        if (nfa == null) {
-            return false;
-        }
-        this.nfa = nfa;
+export { Dfa, determinize, minimizeDfa } from './dfa.ts';
+export type { CharClass, DfaState } from './dfa.ts';
 
-        return true;
-    }
+export { find, findAll, replace, testFull } from './matcher.ts';
+export type { Match, MatchOptions, Replacement } from './matcher.ts';
 
-    public search(target: string): boolean {
-        if (this.nfa == null) {
-            return false;
-        }
-        return this.nfa.search(target);
-    }
-}
-
-export {
-    Regex
-}
+export { RegexCompileError, RegexSyntaxError } from './errors.ts';

@@ -1,0 +1,35 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "test",
+      "type": "shell",
+      "command": "node",
+      "args": ["--test", "test/*.test.ts"],
+      "group": { "kind": "test", "isDefault": true },
+      "problemMatcher": []
+    },
+    {
+      "label": "typecheck",
+      "type": "shell",
+      "command": "node",
+      "args": ["node_modules/typescript/bin/tsc", "--noEmit"],
+      "problemMatcher": ["$tsc"]
+    },
+    {
+      "label": "build",
+      "type": "shell",
+      "command": "node",
+      "args": ["node_modules/typescript/bin/tsc", "-p", "tsconfig.build.json"],
+      "group": "build",
+      "problemMatcher": ["$tsc"]
+    },
+    {
+      "label": "demo",
+      "type": "shell",
+      "command": "node",
+      "args": ["examples/demo.ts"],
+      "problemMatcher": []
+    }
+  ]
+}
